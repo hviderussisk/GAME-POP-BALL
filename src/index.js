@@ -3,11 +3,14 @@ import './css/main.sass'
 document.addEventListener("DOMContentLoaded", ready); 
 
 function ready(){
-    let tId = null
+    let tId, wId
     const   areaBall = document.getElementById('areaBall'),
             bee = document.getElementById('bee'),
             button = document.getElementById('button'),
+            butOneM = document.getElementById('buttonOneMore'),
             divC = document.getElementById('count'),
+            los = document.getElementById('loser'),
+            win = document.getElementById('win'),
             cloud = document.getElementById('background-wrap')
 
     const c = areaBall.getBoundingClientRect()
@@ -24,7 +27,7 @@ function ready(){
     let allowCB  =  {
                         l: 0, 
                         t: 0,
-                        b: c.bottom - c.height/2 - coordsBee().cbe.height - 5,
+                        b: c.bottom - coordsBee().cbe.height - 5,
                         r: c.width - coordsBee().cbe.width
                     }
 
@@ -41,7 +44,7 @@ function ready(){
             return target
         }
     })
-    
+
     function into(ot1, of1, ot2, of2){
         let flag = false
         for(let i = ot1 ; i <= of1; i++){
@@ -102,12 +105,12 @@ function ready(){
                         }, i ) : undefined
     }
 
-
-
     button.addEventListener('click', startGame )
+    butOneM.addEventListener('click', startGame )
 
     function startGame (){
         button.style.display = 'none'
+        divC.classList.remove('animationZoom')
 
         let X, Y, ofsLeft, ofsTop
         const tD = document.getElementById('timer')
@@ -115,10 +118,10 @@ function ready(){
         let flPress = false,
             startDate = new Date()
         
-        const inDrag = (cur, targ) => {
+        const inDrag = (cur) => {
             flPress = true
-            ofsLeft = targ.offsetLeft
-            ofsTop = targ.offsetTop
+            ofsLeft = bee.offsetLeft
+            ofsTop = bee.offsetTop
             X = cur.clientX
             Y = cur.clientY
         }
@@ -132,7 +135,7 @@ function ready(){
             pcBee.y = ofsTop + cY
         }
 
-        const dragStart = e => e.type === "touchstart" ? inDrag(e.touches[0], e.touches[0].target ) : inDrag(e, e.currentTarget)
+        const dragStart = e => e.type === "touchstart" ? inDrag(e.touches[0]) : inDrag(e)
         const dragEnd = () => flPress = false 
         const drag = e => flPress && (e.type === 'touchmove' ? mDrag(e.touches[0]) : mDrag(e) )
 
@@ -154,9 +157,35 @@ function ready(){
                     ti -= iDate
             let ms = Math.floor( ti % 1000 / 10 ),
                 s = Math.floor( ti / 1000 % 60 )
-
             return { s, ms, ti }
         }
+        
+        const rePosR = el => {
+            let l = el.offsetLeft / 150
+            el.offsetLeft > 0 ? el.style.left = el.offsetLeft - l  + 'px' : el
+        }
+
+        const rePosL = el => {
+            let l = (c.width - el.offsetLeft) / 150
+            el.offsetLeft < c.width - el.offsetWidth ? el.style.left = el.offsetLeft + l + 'px' : el
+        }
+
+        const wthW = (t, fn) => {
+            return setTimeout(()=> {
+                            let sms = clock(60000)
+                            const bolSide = Boolean(Math.floor(Math.random() * (2-0)) + 0)
+                            const reW = () => {
+                                let ss = clock(60000)
+                                if(ss.s > sms.s-t/2000){
+                                    elDom.forEach( el => bolSide ? rePosR(el) : rePosL(el) )
+                                    setTimeout(reW, 20)
+                                }
+                            }
+                            reW()
+                            setTimeout(() => fn() , t)
+                }, t)
+        } 
+
 
         const redraw = () => {
             const   sms = clock(60000),
@@ -164,6 +193,7 @@ function ready(){
 
             sms.s < 10 && ( sms.s = `0${sms.s}` )
             sms.ms < 10 && ( sms.ms = `0${sms.ms}` )
+
             elDom.forEach( el => {
                 const   ball = el.getBoundingClientRect(),
                         bee = coordsBee()
@@ -171,20 +201,22 @@ function ready(){
                 el.offsetTop + el.clientHeight < 0 && passEl(el)
                 into( ball.x, ball.right, bee.x, bee.xx ) && into( ball.y, ball.bottom, bee.y, bee.yy ) && blownEl(el)  
             })
+
             sms.ti > 0 && setTimeout(redraw, 20)
 
             if(sms.ti <= 0){
                 sms.s = '00'
                 sms.ms = '00'
                 flPress = false
-                divC.innerText = `Пропустил ${cPass}    Лопнул ${cBlown}`
+                los.innerText = `${cPass}`
+                win.innerText = `${cBlown}`
                 divC.classList.add('animationZoom')
-                button.style.display = 'flex'
                 for (const el of areaBall.children) el.classList.add('animationiHide')
-                setTimeout( elDom.forEach( el => el.remove() ), 300 )
                 clearTimeout(tId)
+                clearTimeout(wId)
                 tD.innerText = `${sms.s}:${sms.ms}`
             }
+
             tD.innerText = `${sms.s}:${sms.ms}`
         }
         redraw()
@@ -195,5 +227,13 @@ function ready(){
             tId = rNewBall( io.s, i, cIntervar )
         }
         cIntervar()
+
+
+        const wI = () => {
+            const   t = randInt(6000, 4000)
+            wId = wthW( t, wI )
+        }
+        wI()
     }
 }
+

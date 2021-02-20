@@ -3,6 +3,8 @@
 
 body
     overflow: hidden
+    touch-action: none
+
 #windowGame
     @include display-flex(null, center, center)
     width: 300px
@@ -43,7 +45,7 @@ body
         @include animation( fadeOutUpBig, 1.6s, both, 1 )
 
 #count
-    @include display-flex(null, center, center)
+    @include display-flex(column, center, center)
     opacity: 0
     position: absolute
     left: 0
@@ -51,14 +53,24 @@ body
     margin: auto
     padding: 50px
     width: 250px
-    font-weight: 800
-    font-size: 20px
+    font-weight: bolder
     z-index: 1000
-    background: lightgreen
     text-align: center
     box-sizing: border-box
+    background: #fafafa
+    border-radius: 20px
+    font-family: -webkit-pictograph
+    font-size: 30px
+    .wrap
+        @include display-flex(row, center, center)  
+    #loser
+        color: red
+        margin-right: 30px
+    #win
+        color: #46d60d
 
-#button
+
+#button, #buttonOneMore
     z-index: 2000
     padding: 10px 20px
     font-size: 20px
@@ -67,6 +79,7 @@ body
     font-weight: 600
     text-transform: uppercase
     cursor: pointer
+    margin-top: 20px
 
 .animationZoom
     @include animation( zoomIn, 1s, both, null )
